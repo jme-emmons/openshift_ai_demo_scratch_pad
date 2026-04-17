@@ -137,6 +137,7 @@ Default variables:
 
 Optional variable:
 - `OPENSHIFT_AI_API_KEY` - only needed if your OpenShift AI routes require authentication
+- `PRELOADED_PDF_PATH` - optional path to a PDF that should be copied into managed storage and indexed at startup. Defaults to `afh1.pdf`.
 
 ## Project Structure
 
