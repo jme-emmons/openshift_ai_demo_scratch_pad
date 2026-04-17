@@ -1,0 +1,16 @@
+.git
+__pycache__
+*.pyc
+.*_cache
+.coverage
+htmlcov
+.venv
+.vscode
+.env
+.env-example
+.env.*
+.gitignore
+Dockerfile
+LICENSE
+README.md
+compose.yml

@@ -1,0 +1,24 @@
+name: redis-rag-workbench
+
+services:
+  app:
+    container_name: app
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=10.131.0.60
+      - REDIS_PORT=11739
+      - REDIS_PASSWORD=RfXEZmVr
+    env_file:
+      - ../.env
+    volumes:
+      # Development volume mounts for hot reloading
+      - ../assets:/app/assets
+      - ../workbench:/app/workbench
+      - ../data:/app/data
+      - ../static:/app/static
+      - ../main.py:/app/main.py
+    restart: unless-stopped
