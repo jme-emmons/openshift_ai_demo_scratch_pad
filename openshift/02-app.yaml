@@ -1,5 +1,5 @@
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: redis-rag-workbench
   labels:
@@ -8,19 +8,16 @@ spec:
   replicas: 1
   revisionHistoryLimit: 3
   selector:
-    app: redis-rag-workbench
-    deploymentconfig: redis-rag-workbench
-  strategy:
-    type: Rolling
+    matchLabels:
+      app: redis-rag-workbench
   template:
     metadata:
       labels:
         app: redis-rag-workbench
-        deploymentconfig: redis-rag-workbench
     spec:
       containers:
         - name: app
-          image: image-registry.openshift-image-registry.svc:5000/placeholder/redis-rag-workbench:latest
+          image: docker.io/jessicaemmons853/redis-rag-workbench:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -68,16 +65,6 @@ spec:
         - name: app-data
           persistentVolumeClaim:
             claimName: redis-rag-workbench-data
-  triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-          - app
-        from:
-          kind: ImageStreamTag
-          name: redis-rag-workbench:latest
 ---
 apiVersion: v1
 kind: Service
@@ -88,7 +75,6 @@ metadata:
 spec:
   selector:
     app: redis-rag-workbench
-    deploymentconfig: redis-rag-workbench
   ports:
     - name: http
       port: 8000

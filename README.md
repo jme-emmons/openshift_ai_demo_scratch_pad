@@ -148,12 +148,21 @@ Optional variable:
 
 ## OpenShift Deployment
 
-This repo includes OpenShift-native build and runtime manifests in [openshift/00-build.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/00-build.yaml), [openshift/01-config.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/01-config.yaml), and [openshift/02-app.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/02-app.yaml).
+This repo includes OpenShift runtime manifests in [openshift/01-config.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/01-config.yaml) and [openshift/02-app.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/02-app.yaml). The default deployment uses a prebuilt image from Docker Hub: `docker.io/jessicaemmons853/redis-rag-workbench:latest`.
 
-Apply the resources:
+Build and push the image from your laptop:
 
 ```bash
-oc apply -f openshift/00-build.yaml
+docker build -f docker/Dockerfile -t docker.io/jessicaemmons853/redis-rag-workbench:latest .
+docker login
+docker push docker.io/jessicaemmons853/redis-rag-workbench:latest
+```
+
+If you want to publish a different tag, update the image reference in [openshift/02-app.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/02-app.yaml) before deployment.
+
+Apply the OpenShift resources:
+
+```bash
 oc apply -f openshift/01-config.yaml
 oc apply -f openshift/02-app.yaml
 ```
@@ -166,16 +175,22 @@ oc set data secret/redis-rag-workbench-secrets \
   --from-literal=OPENSHIFT_AI_API_KEY='<your-optional-api-key>'
 ```
 
-Start the image build from this repo:
+If your Docker Hub repository is private, create an image pull secret and attach it to the default service account:
 
 ```bash
-oc start-build redis-rag-workbench --from-dir=. --follow
+oc create secret docker-registry dockerhub-creds \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username='<your-dockerhub-username>' \
+  --docker-password='<your-dockerhub-password-or-token>' \
+  --docker-email='<your-email>'
+
+oc secrets link default dockerhub-creds --for=pull
 ```
 
 Watch the rollout and fetch the Route:
 
 ```bash
-oc rollout status dc/redis-rag-workbench
+oc rollout status deployment/redis-rag-workbench
 oc get route redis-rag-workbench
 ```
 
