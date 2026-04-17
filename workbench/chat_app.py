@@ -33,8 +33,6 @@ from workbench.shared.pdf_manager import PDFManager, PDFMetadata
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-PRELOADED_PDF = os.environ.get("PRELOADED_PDF_PATH", "afh1.pdf")
-
 
 class ChatApp:
     def __init__(self) -> None:
@@ -97,20 +95,6 @@ class ChatApp:
 
     def initialize_components(self):
         self.pdf_manager = PDFManager(self.redis_url)
-        embeddings = self.get_embedding_model()
-
-        try:
-            self.pdf_manager.ensure_preloaded_pdf(
-                PRELOADED_PDF,
-                embeddings,
-                self.chunk_size,
-                self.chunking_technique,
-            )
-            logger.info("Preloaded PDF ready: %s", PRELOADED_PDF)
-        except FileNotFoundError:
-            logger.info("No preloaded PDF found at %s", PRELOADED_PDF)
-        except Exception as exc:
-            logger.warning("Failed to preload PDF %s: %s", PRELOADED_PDF, exc)
 
         logger.info("Performing data reconciliation...")
         try:

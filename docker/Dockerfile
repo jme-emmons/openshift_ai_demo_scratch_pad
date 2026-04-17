@@ -17,12 +17,13 @@ ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
 # Install required build dependencies for ARM
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     libfreetype6-dev \
     libharfbuzz-dev \
     libfribidi-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
@@ -40,10 +41,15 @@ COPY . /app
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync
+    uv sync --frozen
+
+# OpenShift runs with a random UID, so make the app tree group-writable for gid 0.
+RUN mkdir -p /app/data/pdfs /tmp && \
+    chgrp -R 0 /app && \
+    chmod -R g=u /app
 
 ENV PORT=8000
 
 EXPOSE ${PORT}
 
-CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

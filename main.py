@@ -23,5 +23,10 @@ async def favicon():
     return FileResponse(favicon_path)
 
 
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    return {"status": "ok"}
+
+
 workbench.initialize()
 app = gr.mount_gradio_app(app, workbench.ui(), workbench.path())

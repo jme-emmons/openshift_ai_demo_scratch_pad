@@ -32,6 +32,7 @@
   - [Development Workflows](#development-workflows)
   - [Environment Configuration](#environment-configuration)
 - [Project Structure](#project-structure)
+- [OpenShift Deployment](#openshift-deployment)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -137,7 +138,6 @@ Default variables:
 
 Optional variable:
 - `OPENSHIFT_AI_API_KEY` - only needed if your OpenShift AI routes require authentication
-- `PRELOADED_PDF_PATH` - optional path to a PDF that should be copied into managed storage and indexed at startup. Defaults to `afh1.pdf`.
 
 ## Project Structure
 
@@ -145,6 +145,41 @@ Optional variable:
 - `demos/`: Contains workbench demo implementation
 - `shared_components/`: Reusable utilities and components
 - `static/`: Static assets for the web interface
+
+## OpenShift Deployment
+
+This repo includes OpenShift-native build and runtime manifests in [openshift/00-build.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/00-build.yaml), [openshift/01-config.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/01-config.yaml), and [openshift/02-app.yaml](/Users/jessica.emmons/Documents/openshift_demo/openshift/02-app.yaml).
+
+Apply the resources:
+
+```bash
+oc apply -f openshift/00-build.yaml
+oc apply -f openshift/01-config.yaml
+oc apply -f openshift/02-app.yaml
+```
+
+Before the first rollout, update the placeholder secret values:
+
+```bash
+oc set data secret/redis-rag-workbench-secrets \
+  --from-literal=REDIS_PASSWORD='<your-redis-password>' \
+  --from-literal=OPENSHIFT_AI_API_KEY='<your-optional-api-key>'
+```
+
+Start the image build from this repo:
+
+```bash
+oc start-build redis-rag-workbench --from-dir=. --follow
+```
+
+Watch the rollout and fetch the Route:
+
+```bash
+oc rollout status dc/redis-rag-workbench
+oc get route redis-rag-workbench
+```
+
+The application listens on port `8000`, the `Service` forwards port `8000` to the pod's `http` container port, and the `Route` exposes that service with edge TLS termination.
 
 ## Contributing
 

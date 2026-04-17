@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-rag-workbench-config
+  labels:
+    app: redis-rag-workbench
+data:
+  PORT: "8000"
+  LLM_MODEL: "llama-3.2-3b-instruct"
+  LLM_ENDPOINT: "https://llama-32-3b-instruct-rag.apps.mays-demo.sandbox3060.opentlc.com"
+  EMBEDDING_MODEL: "granite-embedding-english-r2"
+  EMBEDDING_ENDPOINT: "https://granite-embedding-english-r2-rag.apps.mays-demo.sandbox3060.opentlc.com"
+  REDIS_HOST: "10.131.0.60"
+  REDIS_PORT: "11739"
+  DEFAULT_CHUNK_SIZE: "500"
+  DEFAULT_CHUNKING_TECHNIQUE: "Recursive Character"
+  DEFAULT_USE_SEMANTIC_CACHE: "false"
+  DEFAULT_TOP_K: "3"
+  DEFAULT_DISTANCE_THRESHOLD: "0.30"
+  DEFAULT_LLM_TEMPERATURE: "0.7"
+  DEFAULT_USE_CHAT_HISTORY: "false"
+  DEFAULT_USE_SEMANTIC_ROUTER: "false"
+  DEFAULT_USE_RAGAS: "false"
+  PRELOADED_PDF_PATH: "/app/afh1.pdf"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-rag-workbench-secrets
+  labels:
+    app: redis-rag-workbench
+type: Opaque
+stringData:
+  REDIS_PASSWORD: "change-me"
+  OPENSHIFT_AI_API_KEY: "unused"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-rag-workbench-data
+  labels:
+    app: redis-rag-workbench
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -6,11 +6,9 @@ __pycache__
 htmlcov
 .venv
 .vscode
+.idea
+.DS_Store
 .env
-.env-example
 .env.*
-.gitignore
-Dockerfile
-LICENSE
-README.md
-compose.yml
+data/logs
+data/pdfs

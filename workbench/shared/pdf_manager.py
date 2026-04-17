@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -93,11 +92,6 @@ class PDFManager:
             # Use the original filename directly
             original_filename = Path(file.name).name
             file_path = (self.storage_dir / original_filename).resolve()
-            source_path = Path(file.name).resolve()
-
-            if source_path == file_path and file_path.exists():
-                logger.info(f"PDF already stored at: {file_path}")
-                return str(file_path)
 
             logger.info(f"Storing PDF at: {file_path}")
 
@@ -120,51 +114,6 @@ class PDFManager:
         except Exception as e:
             logger.error(f"Failed to store PDF file: {e}")
             raise
-
-    def ensure_preloaded_pdf(
-        self,
-        source_path: str,
-        embeddings,
-        chunk_size: int,
-        chunking_technique: str,
-    ) -> str:
-        """Ensure a repo-provided PDF is copied into managed storage and indexed."""
-        source = Path(source_path).resolve()
-        if not source.exists():
-            raise FileNotFoundError(f"Preloaded PDF not found: {source}")
-
-        managed_path = (self.storage_dir / source.name).resolve()
-        if source != managed_path:
-            shutil.copy2(source, managed_path)
-            logger.info(f"Copied preloaded PDF from {source} to {managed_path}")
-
-        index_name = self._generate_index_name(managed_path.name)
-        metadata = self.get_pdf_metadata(index_name)
-
-        class SimpleFile:
-            def __init__(self, path: Path):
-                self.name = str(path)
-
-        managed_file = SimpleFile(managed_path)
-
-        if not metadata:
-            logger.info(f"Indexing preloaded PDF {managed_path.name}")
-            return self.process_pdf_complete(
-                managed_file, chunk_size, chunking_technique, embeddings
-            )
-
-        metadata_needs_update = metadata.file_path != str(managed_path)
-        if metadata_needs_update:
-            metadata.file_path = str(managed_path)
-            metadata.file_size = managed_path.stat().st_size // 1024
-            self.index.load([metadata.__dict__], id_field="index_name")
-            logger.info(f"Updated stored path for preloaded PDF {managed_path.name}")
-
-        if not self._check_vector_store_exists(index_name):
-            logger.info(f"Creating missing vector store for preloaded PDF {managed_path.name}")
-            self.load_pdf_complete(index_name, embeddings)
-
-        return index_name
 
     def process_pdf_complete(self, file, chunk_size: int, chunking_technique: str, embeddings) -> str:
         """Complete PDF processing: store file, create metadata, and build vector store."""
